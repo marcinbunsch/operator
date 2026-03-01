@@ -1,7 +1,7 @@
 {
-  "name": "@operator/core",
+  "name": "@operator/sdk",
   "version": "0.0.1",
-  "description": "Framework foundation for the Operator AI agent ecosystem",
+  "description": "SDK for the Operator AI agent ecosystem",
   "keywords": [
     "agent",
     "ai",
@@ -21,6 +21,14 @@
     "./testing": {
       "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js"
+    },
+    "./interfaces/slack": {
+      "types": "./dist/interfaces/slack/index.d.ts",
+      "import": "./dist/interfaces/slack/index.js"
+    },
+    "./interfaces/slack/testing": {
+      "types": "./dist/interfaces/slack/testing.d.ts",
+      "import": "./dist/interfaces/slack/testing.js"
     }
   },
   "scripts": {
@@ -41,6 +49,7 @@
   },
   "devDependencies": {
     "@effect/vitest": "^0.27.0",
+    "@slack/bolt": "^4.3.1",
     "@typescript/native-preview": "7.0.0-dev.20260227.1",
     "@vitest/coverage-v8": "^3.2.0",
     "oxfmt": "^0.35.0",
@@ -48,6 +57,14 @@
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^3.2.0"
+  },
+  "peerDependencies": {
+    "@slack/bolt": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@slack/bolt": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@10.30.3",
   "pnpm": {
