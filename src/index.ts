@@ -23,3 +23,16 @@ export {
 } from "./services/JobQueueService.js";
 
 export { SpawnService, type SpawnOptions } from "./services/SpawnService.js";
+
+// AI - LLM abstraction and providers
+export {
+  createOpenAiLayer,
+  createAnthropicLayer,
+  type OpenAiConfig,
+  type AnthropicConfig,
+  LanguageModel,
+  Prompt,
+  Tool,
+  Toolkit,
+  AiError,
+} from "./ai/index.js";
