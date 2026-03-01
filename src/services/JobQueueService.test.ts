@@ -1,35 +1,16 @@
-import { it, describe, beforeEach, afterEach } from "@effect/vitest";
+import { it, describe } from "@effect/vitest";
 import { Effect, Exit } from "effect";
 import { expect } from "vitest";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { unlinkSync, existsSync, mkdirSync } from "node:fs";
 import { JobQueueService } from "./JobQueueService.js";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const TMP_DIR = join(__dirname, "..", "..", "tmp");
-
-// Ensure tmp dir exists
-beforeEach(() => {
-  if (!existsSync(TMP_DIR)) {
-    mkdirSync(TMP_DIR, { recursive: true });
-  }
-});
+import { withTempDir } from "../test/helpers.js";
 
 describe("JobQueueService.enqueue", () => {
-  const jobsFile = join(TMP_DIR, "test-jobs.json");
-
-  afterEach(() => {
-    if (existsSync(jobsFile)) {
-      unlinkSync(jobsFile);
-    }
-  });
-
   it.effect("creates a job with queued status", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("enqueue");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const job = yield* queue.enqueue("test-type", "/tmp", { key: "value" });
 
@@ -46,8 +27,9 @@ describe("JobQueueService.enqueue", () => {
   it.effect("assigns unique IDs to jobs", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("enqueue-unique");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const job1 = yield* queue.enqueue("test", "/tmp", {});
         const job2 = yield* queue.enqueue("test", "/tmp", {});
@@ -59,19 +41,12 @@ describe("JobQueueService.enqueue", () => {
 });
 
 describe("JobQueueService.getJob", () => {
-  const jobsFile = join(TMP_DIR, "test-jobs-get.json");
-
-  afterEach(() => {
-    if (existsSync(jobsFile)) {
-      unlinkSync(jobsFile);
-    }
-  });
-
   it.effect("returns job by ID", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("getJob");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const created = yield* queue.enqueue("test", "/tmp", { foo: "bar" });
         const retrieved = yield* queue.getJob(created.id);
@@ -85,8 +60,9 @@ describe("JobQueueService.getJob", () => {
   it.effect("fails with JobNotFoundError for unknown ID", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("getJob-notfound");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const result = yield* queue.getJob("nonexistent-id").pipe(Effect.exit);
 
@@ -97,19 +73,12 @@ describe("JobQueueService.getJob", () => {
 });
 
 describe("JobQueueService.updateMetadata", () => {
-  const jobsFile = join(TMP_DIR, "test-jobs-meta.json");
-
-  afterEach(() => {
-    if (existsSync(jobsFile)) {
-      unlinkSync(jobsFile);
-    }
-  });
-
   it.effect("updates job metadata", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("updateMetadata");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const job = yield* queue.enqueue("test", "/tmp", {});
         yield* queue.updateMetadata(job.id, { pid: 12345, progress: "50%" });
@@ -123,8 +92,9 @@ describe("JobQueueService.updateMetadata", () => {
   it.effect("merges with existing metadata", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("updateMetadata-merge");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const job = yield* queue.enqueue("test", "/tmp", {});
         yield* queue.updateMetadata(job.id, { a: 1 });
@@ -138,19 +108,12 @@ describe("JobQueueService.updateMetadata", () => {
 });
 
 describe("JobQueueService.completeJob", () => {
-  const jobsFile = join(TMP_DIR, "test-jobs-complete.json");
-
-  afterEach(() => {
-    if (existsSync(jobsFile)) {
-      unlinkSync(jobsFile);
-    }
-  });
-
   it.effect("marks job as done", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("completeJob-done");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const job = yield* queue.enqueue("test", "/tmp", {});
         yield* queue.completeJob(job.id, "done");
@@ -165,8 +128,9 @@ describe("JobQueueService.completeJob", () => {
   it.effect("marks job as failed with error", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("completeJob-failed");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         const job = yield* queue.enqueue("test", "/tmp", {});
         yield* queue.completeJob(job.id, "failed", "Something went wrong");
@@ -180,19 +144,12 @@ describe("JobQueueService.completeJob", () => {
 });
 
 describe("JobQueueService.getJobs", () => {
-  const jobsFile = join(TMP_DIR, "test-jobs-list.json");
-
-  afterEach(() => {
-    if (existsSync(jobsFile)) {
-      unlinkSync(jobsFile);
-    }
-  });
-
   it.effect("returns all jobs", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("getJobs");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         yield* queue.enqueue("type-a", "/tmp", {});
         yield* queue.enqueue("type-b", "/tmp", {});
@@ -206,19 +163,12 @@ describe("JobQueueService.getJobs", () => {
 });
 
 describe("JobQueueService.registerRunner", () => {
-  const jobsFile = join(TMP_DIR, "test-jobs-runner.json");
-
-  afterEach(() => {
-    if (existsSync(jobsFile)) {
-      unlinkSync(jobsFile);
-    }
-  });
-
   it.effect("registers runner without error", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const tmp = yield* withTempDir("registerRunner");
         const queue = yield* JobQueueService;
-        yield* queue.configure(jobsFile);
+        yield* queue.configure(tmp.path("jobs.json"));
 
         // Should not throw
         yield* queue.registerRunner("test-runner", 2, () => Effect.void);
