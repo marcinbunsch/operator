@@ -2,8 +2,8 @@ import { it, describe } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { writeFileSync } from "node:fs";
-import { SpawnService } from "./SpawnService.js";
-import { withTempDir } from "../test/helpers.js";
+import { SpawnService } from "../../src/services/SpawnService.js";
+import { withTempDir } from "../helpers.js";
 
 describe("SpawnService.isPidAlive", () => {
   it.effect("returns true for current process PID", () =>

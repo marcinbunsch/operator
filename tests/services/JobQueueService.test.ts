@@ -1,8 +1,8 @@
 import { it, describe } from "@effect/vitest";
 import { Effect, Exit } from "effect";
 import { expect } from "vitest";
-import { JobQueueService } from "./JobQueueService.js";
-import { withTempDir } from "../test/helpers.js";
+import { JobQueueService } from "../../src/services/JobQueueService.js";
+import { withTempDir } from "../helpers.js";
 
 describe("JobQueueService.enqueue", () => {
   it.scoped("creates a job with queued status", () =>
