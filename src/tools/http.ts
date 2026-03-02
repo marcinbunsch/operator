@@ -71,6 +71,15 @@ export const HttpToolHandlers = HttpToolkit.toLayer(
     return {
       http_request: ({ url, method, headers, body, timeout }) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Tool call: http_request").pipe(
+            Effect.annotateLogs({
+              url,
+              method: method ?? "GET",
+              hasHeaders: headers !== undefined,
+              hasBody: body !== undefined,
+              timeout: timeout ?? 30000,
+            }),
+          );
           // Validate URL against allowlist and SSRF protection
           const validatedUrl = yield* sandbox.validateUrl(url);
 

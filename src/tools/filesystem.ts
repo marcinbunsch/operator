@@ -126,6 +126,9 @@ export const FilesystemToolHandlers = FilesystemToolkit.toLayer(
     return {
       file_read: ({ path: filePath }) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Tool call: file_read").pipe(
+            Effect.annotateLogs({ path: filePath }),
+          );
           const resolvedPath = yield* sandbox.resolvePath(filePath);
           const content = yield* Effect.tryPromise({
             try: () => fs.readFile(resolvedPath, "utf-8"),
@@ -138,6 +141,9 @@ export const FilesystemToolHandlers = FilesystemToolkit.toLayer(
 
       file_write: ({ path: filePath, content }) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Tool call: file_write").pipe(
+            Effect.annotateLogs({ path: filePath, contentLength: content.length }),
+          );
           const resolvedPath = yield* sandbox.resolvePath(filePath);
           const dir = path.dirname(resolvedPath);
           yield* Effect.tryPromise({
@@ -159,6 +165,13 @@ export const FilesystemToolHandlers = FilesystemToolkit.toLayer(
 
       file_edit: ({ path: filePath, old_text, new_text }) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Tool call: file_edit").pipe(
+            Effect.annotateLogs({
+              path: filePath,
+              oldTextLength: old_text.length,
+              newTextLength: new_text.length,
+            }),
+          );
           const resolvedPath = yield* sandbox.resolvePath(filePath);
           const content = yield* Effect.tryPromise({
             try: () => fs.readFile(resolvedPath, "utf-8"),
@@ -189,6 +202,9 @@ export const FilesystemToolHandlers = FilesystemToolkit.toLayer(
 
       file_append: ({ path: filePath, content }) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Tool call: file_append").pipe(
+            Effect.annotateLogs({ path: filePath, contentLength: content.length }),
+          );
           const resolvedPath = yield* sandbox.resolvePath(filePath);
           const dir = path.dirname(resolvedPath);
           yield* Effect.tryPromise({

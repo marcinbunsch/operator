@@ -54,6 +54,9 @@ export const ShellToolHandlers = ShellToolkit.toLayer(
     return {
       shell: ({ command, cwd, timeout }) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Tool call: shell").pipe(
+            Effect.annotateLogs({ command, cwd: cwd ?? "(default)", timeout: timeout ?? 30000 }),
+          );
           // Resolve working directory
           const workingDir =
             cwd !== undefined ? yield* sandbox.resolvePath(cwd) : sandbox.defaultWorkspace;
