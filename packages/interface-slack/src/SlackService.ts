@@ -224,6 +224,39 @@ export class SlackService extends Effect.Service<SlackService>()(
           });
           return uploadEffect.pipe(transientRetry, Effect.asVoid);
         },
+
+        /**
+         * Get a channel by name (without the # prefix).
+         * Returns the channel ID and name if found.
+         */
+        getChannelByName: (
+          name: string,
+        ): Effect.Effect<{ id: string; name: string } | null, SlackError> => {
+          const normalizedName = name.startsWith("#") ? name.slice(1) : name;
+          const listEffect = Effect.tryPromise({
+            try: async () => {
+              let cursor: string | undefined;
+              do {
+                const args: { types: string; limit: number; cursor?: string } = {
+                  types: "public_channel,private_channel",
+                  limit: 200,
+                };
+                if (cursor) {
+                  args.cursor = cursor;
+                }
+                const result = await app.client.conversations.list(args);
+                const channel = result.channels?.find((c) => c.name === normalizedName);
+                if (channel && channel.id && channel.name) {
+                  return { id: channel.id, name: channel.name };
+                }
+                cursor = result.response_metadata?.next_cursor;
+              } while (cursor);
+              return null;
+            },
+            catch: (e) => new SlackError({ operation: "getChannelByName", cause: e }),
+          });
+          return listEffect.pipe(transientRetry);
+        },
       };
     }),
   },

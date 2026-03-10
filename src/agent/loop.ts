@@ -18,6 +18,15 @@ import type * as Toolkit from "@effect/ai/Toolkit";
 const DEFAULT_MAX_ITERATIONS = 10;
 
 /**
+ * Information about a tool call
+ */
+export interface ToolCallInfo {
+  readonly name: string;
+  readonly input: unknown;
+  readonly result: unknown;
+}
+
+/**
  * Configuration for the agentic loop
  */
 export interface AgenticLoopConfig {
@@ -43,6 +52,9 @@ export interface AgenticLoopConfig {
 
   /** Called on each iteration with the iteration number */
   readonly onIteration?: (iteration: number) => Effect.Effect<void>;
+
+  /** Called when tools are invoked, receives array of tool call info */
+  readonly onToolCalls?: (toolCalls: ToolCallInfo[]) => Effect.Effect<void>;
 
   /** Called when an error occurs, receives the error and can return a recovery message */
   readonly onError?: (error: unknown) => Effect.Effect<string | null>;
@@ -102,6 +114,7 @@ export const runAgenticLoop = (
     toolHandlerLayer,
     maxIterations = DEFAULT_MAX_ITERATIONS,
     onIteration,
+    onToolCalls,
     onError,
   } = config;
 
@@ -165,6 +178,26 @@ export const runAgenticLoop = (
 
       // LLM called tools - merge response into prompt and continue
       const responseParts = response.content;
+
+      // Extract tool call info for logging
+      if (onToolCalls) {
+        const toolCallInfos: ToolCallInfo[] = [];
+        for (const part of responseParts) {
+          // Use type guard to check for ToolCall parts
+          const p = part as { _tag?: string; name?: string; params?: unknown; result?: unknown };
+          if (p._tag === "ToolCall" && p.name) {
+            toolCallInfos.push({
+              name: p.name,
+              input: p.params,
+              result: p.result,
+            });
+          }
+        }
+        if (toolCallInfos.length > 0) {
+          yield* onToolCalls(toolCallInfos);
+        }
+      }
+
       const responsePrompt = Prompt.fromResponseParts(responseParts);
       prompt = Prompt.merge(prompt, responsePrompt);
     }

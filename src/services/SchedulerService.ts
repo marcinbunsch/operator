@@ -122,24 +122,27 @@ export class SchedulerService extends Effect.Service<SchedulerService>()(
             // Call the callback synchronously (it should use runtime.runFork internally)
             executeCallback(schedule);
 
-            // Update schedule status
-            yield* Ref.update(schedulesRef, (schedules) =>
-              schedules.map((s) => {
-                if (s.id !== schedule.id) return s;
-                if (s.type === "once") {
-                  return {
-                    ...s,
-                    status: "completed" as const,
-                    lastRunAt: now.toISOString(),
-                  };
-                }
-                return {
-                  ...s,
-                  lastRunAt: now.toISOString(),
-                  nextRunAt: computeNextRun(s.cronExpression),
-                };
-              }),
-            );
+            // Update or remove schedule
+            if (schedule.type === "once") {
+              // Remove one-off schedules after execution
+              yield* Ref.update(schedulesRef, (schedules) =>
+                schedules.filter((s) => s.id !== schedule.id),
+              );
+              yield* log(`Removed one-off schedule ${schedule.id.slice(0, 8)}`);
+            } else {
+              // Update recurring schedules with next run time
+              yield* Ref.update(schedulesRef, (schedules) =>
+                schedules.map((s) =>
+                  s.id === schedule.id
+                    ? {
+                        ...s,
+                        lastRunAt: now.toISOString(),
+                        nextRunAt: computeNextRun(s.cronExpression),
+                      }
+                    : s,
+                ),
+              );
+            }
             yield* saveToDisk;
           }
         }

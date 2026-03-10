@@ -10,7 +10,12 @@ export {
   type ResponseTarget,
 } from "./agent/types.js";
 
-export { runAgenticLoop, type AgenticLoopConfig, type AgenticLoopResult } from "./agent/loop.js";
+export {
+  runAgenticLoop,
+  type AgenticLoopConfig,
+  type AgenticLoopResult,
+  type ToolCallInfo,
+} from "./agent/loop.js";
 
 // Errors
 export { JobNotFoundError, SpawnError } from "./errors.js";
