@@ -56,8 +56,9 @@ For one-time schedules, set type to "once" and provide scheduled_for as an ISO86
     channel_id: Schema.String.annotations({
       description: "The channel/room ID where the scheduled task should send messages",
     }),
-    scheduled_for: Schema.optional(Schema.String).annotations({
-      description: "ISO8601 timestamp for one-time schedules (required if type=once)",
+    scheduled_for: Schema.NullOr(Schema.String).annotations({
+      description:
+        "ISO8601 timestamp for one-time schedules (required if type=once). Pass null for recurring schedules.",
     }),
   },
   success: ScheduleResult,
@@ -132,7 +133,7 @@ export const SchedulerToolHandlers = SchedulerToolkit.toLayer(
             cronExpression: cron_expression,
             prompt,
             channelId: channel_id,
-            scheduledFor: scheduled_for,
+            scheduledFor: scheduled_for ?? undefined,
           });
           return {
             id: schedule.id,
