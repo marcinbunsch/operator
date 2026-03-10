@@ -45,6 +45,17 @@ export {
   SchedulerToolHandlers,
 } from "./scheduler/index.js";
 
+// Memory tools
+export {
+  AddMemory,
+  GetMemories,
+  ListTopics,
+  DeleteMemory,
+  ClearTopic,
+  MemoryToolkit,
+  MemoryToolHandlers,
+} from "./memory/index.js";
+
 // Combined toolkit with all sandboxed tools
 import { FileRead, FileWrite, FileEdit, FileAppend, FilesystemToolHandlers } from "./filesystem.js";
 import { Shell, ShellToolHandlers } from "./shell.js";

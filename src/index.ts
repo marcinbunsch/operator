@@ -38,6 +38,8 @@ export {
   type ScheduleStatus,
 } from "./services/SchedulerService.js";
 
+export { MemoryService, type Memory } from "./services/MemoryService.js";
+
 // AI - LLM abstraction and providers
 export {
   createOpenAiLayer,
@@ -85,6 +87,14 @@ export {
   ResumeSchedule,
   SchedulerToolkit,
   SchedulerToolHandlers,
+  // Memory tools
+  AddMemory,
+  GetMemories,
+  ListTopics,
+  DeleteMemory,
+  ClearTopic,
+  MemoryToolkit,
+  MemoryToolHandlers,
   // Combined
   SandboxedToolkit,
   SandboxedToolHandlers,
